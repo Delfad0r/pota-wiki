@@ -167,32 +167,32 @@ The execution ends when there are no more Pointers alive.</p>
 <tbody>
 <tr>
 <td><code>&gt; &lt; v ^</code></td>
-<td>Arrows</td>
+<td><a href="#arrows">Arrows</a></td>
 <td>Change the direction of the Pointer.</td>
 </tr>
 <tr>
 <td><code>/ \ x</code></td>
-<td>Mirrors</td>
+<td><a href="#mirrors">Mirrors</a></td>
 <td>Change the direction of the Pointer depending on the current direction. <code>x</code> chooses a random direction.</td>
 </tr>
 <tr>
 <td><code>!</code></td>
-<td>Skip</td>
+<td><a href="#skip-condskip-trampoline">Skip</a></td>
 <td>Skip the next instruction/cell.</td>
 </tr>
 <tr>
 <td><code>?</code></td>
-<td>CondSkip</td>
+<td><a href="#skip-condskip-trampoline">CondSkip</a></td>
 <td>Conditional skip: pop <code>x</code> from the stack and skip the next instruction/cell if <code>x</code> is anything but <code>"0"</code>.</td>
 </tr>
 <tr>
 <td><code>t</code></td>
-<td>Trampoline</td>
+<td><a href="#skip-condskip-trampoline">Trampoline</a></td>
 <td>Pop <code>x</code> from the stack and skip the next <code>x</code> instructions/cells.</td>
 </tr>
 <tr>
 <td><code>" '</code></td>
-<td>StringMode</td>
+<td><a href="#stringmode">StringMode</a></td>
 <td>Start/end string mode. When in string mode, the Pointer pushes a string containing the instructions it finds to the stack instead of executing them.</td>
 </tr>
 <tr>
@@ -207,7 +207,7 @@ The execution ends when there are no more Pointers alive.</p>
 </tr>
 <tr>
 <td><code>j</code></td>
-<td>Jump</td>
+<td><a href="#jump">Jump</a></td>
 <td>Pop <code>y</code> and <code>x</code> from the stack and jump to <code>(x,y)</code>.</td>
 </tr>
 <tr>
@@ -227,7 +227,7 @@ The execution ends when there are no more Pointers alive.</p>
 </tr>
 <tr>
 <td><code>= ( ) [ ]</code></td>
-<td>Cmp</td>
+<td><a href="#cmp">Cmp</a></td>
 <td>Pop <code>y</code> and <code>x</code> from the stack, then push <code>"1"</code> if <code>x operator y</code> holds, otherwise push <code>"0"</code>. <code>=</code> is string&#x2011;wise equality, <code>(</code> and <code>)</code> are string&#x2011;wise lexicographical comparisons (respectively smaller than, larger than), <code>[</code> and <code>]</code> are integer comparisons (respectively smaller than, larger than).</td>
 </tr>
 <tr>
@@ -247,47 +247,47 @@ The execution ends when there are no more Pointers alive.</p>
 </tr>
 <tr>
 <td><code>:</code></td>
-<td>Flatten'</td>
+<td><a href="#flatten-flatten-rotate-reverse">Flatten'</a></td>
 <td>Concatenate all the strings in the stack in a single string.</td>
 </tr>
 <tr>
 <td><code>f</code></td>
-<td>Flatten</td>
+<td><a href="#flatten-flatten-rotate-reverse">Flatten</a></td>
 <td>Pop <code>x</code> from the stack, then concatenate all the string in the stack using <code>x</code> as separator.</td>
 </tr>
 <tr>
 <td><code>{ }</code></td>
-<td>Rotate</td>
+<td><a href="#flatten-flatten-rotate-reverse">Rotate</a></td>
 <td>Rotate the stack respectively to the left and to the right.</td>
 </tr>
 <tr>
 <td><code>r</code></td>
-<td>Reverse</td>
+<td><a href="#flatten-flatten-rotate-reverse">Reverse</a></td>
 <td>Reverse the stack.</td>
 </tr>
 <tr>
 <td><code>n</code></td>
-<td>New</td>
+<td><a href="#new-merge-sduplicate-explode-split">New</a></td>
 <td>Pop <code>x</code> from the stack, then split the stack in two, creating a new one: the last <code>x</code> elements of the old stack, preserving their order, become the elements of the new stack.</td>
 </tr>
 <tr>
 <td><code>m</code></td>
-<td>Merge</td>
+<td><a href="#new-merge-sduplicate-explode-split">Merge</a></td>
 <td>Merge the stack with the stack underlying; if the current stack is the only one, then empty it.</td>
 </tr>
 <tr>
 <td><code>d</code></td>
-<td>SDuplicate</td>
+<td><a href="#new-merge-sduplicate-explode-split">SDuplicate</a></td>
 <td>Create a new stack identical to the underlying one.</td>
 </tr>
 <tr>
 <td><code>e</code></td>
-<td>Explode</td>
+<td><a href="#new-merge-sduplicate-explode-split">Explode</a></td>
 <td>Pop <code>x</code> from the stack, then add a new stack containing the characters of <code>x</code>, in order.</td>
 </tr>
 <tr>
 <td><code>s</code></td>
-<td>Split</td>
+<td><a href="#new-merge-sduplicate-explode-split">Split</a></td>
 <td>Pop <code>y</code> and <code>x</code> from the stack, then add a new stack containing the result of splitting <code>x</code> with <code>y</code> as separator.</td>
 </tr>
 <tr>
@@ -302,12 +302,12 @@ The execution ends when there are no more Pointers alive.</p>
 </tr>
 <tr>
 <td><code>g</code></td>
-<td>Get</td>
+<td><a href="#get-put">Get</a></td>
 <td>Pop <code>y</code> and <code>x</code> from the stack, then push the value of cell <code>(x,y)</code>.</td>
 </tr>
 <tr>
 <td><code>p</code></td>
-<td>Put</td>
+<td><a href="#get-put">Put</a></td>
 <td>Pop <code>y</code>, <code>x</code> and <code>v</code> from the stack and set cell <code>(x, y)</code> to <code>v</code>.</td>
 </tr>
 <tr>
@@ -445,7 +445,7 @@ There are two things to bear in mind:</p>
 <li><code>+0]</code> is equivalent to logical or, although if you want to use it in conjunction with <code>?</code> (CondSkip) you may as well write <code>+?</code> instead of <code>+0]?</code>.</li>
 <li><code>+1=</code> is equivalent to logical xor.</li>
 </ul>
-<h3 id="flatten-flatten-intercalate-rotate-reverse">Flatten', Flatten, Intercalate, Rotate, Reverse</h3>
+<h3 id="flatten-flatten-rotate-reverse">Flatten', Flatten, Rotate, Reverse</h3>
 <p>These instructions affect the entire stack. Let us see what they do with some examples.</p>
 <p><code>:</code> (Flatten') concatenates all the string in the stack into a single string. For instance, if the stack is <code>["abc", "def", "0"]</code>, after executing <code>:</code> it will look like this: <code>["abcdef0"]</code>.<br />
 When used in conjunction with <code>~</code> (Pop), <code>:</code> can be used to clear the stack (whatever the stack looks like, after executing <code>:~</code> it will be empty).</p>

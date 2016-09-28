@@ -30,7 +30,7 @@ The behaviour of a Pointer is determined by the following variables.
 - **Instructions**: a queue that stores instructions to be executed and supports insertion to both front and back and deletion from the front.
 
 ### Program Execution
-At the beginning of the program execution, a single Pointer is created at `(0,0)` facing Right.  
+At the beginning of the program execution, a single Pointer is created at `(0,0)` facing right.  
 When a Pointer is created, all the characters in the string contained in the cell the Pointer is standing in are pushed, in order, to the back of the instructions queue. Then, until the Pointer is alive, it repeatedly performs the following operations:
 
 - if the instructions queue is empty, it moves one cell in the direction it is facing; then, all the characters in the string contained in the cell the Pointer is standing in are pushed, in order, to the back of the instructions queue;
@@ -49,26 +49,26 @@ Here is the complete list of Pota instructions; see below for more detailed desc
 
 | Instruction 	| Name 	| Description 	|
 |-------------	|------	|-------------	|
-|`> < v ^`|Arrows|Change the direction of the Pointer.|
-|`/ \ x`|Mirrors|Change the direction of the Pointer depending on the current direction. `x` chooses a random direction.|
-|`!`|Skip|Skip the next instruction/cell.|
-|`?`|CondSkip|Conditional skip: pop `x` from the stack and skip the next instruction/cell if `x` is anything but `"0"`.|
-|`t`|Trampoline|Pop `x` from the stack and skip the next `x` instructions/cells.|
-|`" '`|StringMode|Start/end string mode. When in string mode, the Pointer pushes a string containing the instructions it finds to the stack instead of executing them.|
+|`> < v ^`|[Arrows](#arrows)|Change the direction of the Pointer.|
+|`/ \ x`|[Mirrors](#mirrors)|Change the direction of the Pointer depending on the current direction. `x` chooses a random direction.|
+|`!`|[Skip](#skip-condskip-trampoline)|Skip the next instruction/cell.|
+|`?`|[CondSkip](#skip-condskip-trampoline)|Conditional skip: pop `x` from the stack and skip the next instruction/cell if `x` is anything but `"0"`.|
+|`t`|[Trampoline](#skip-condskip-trampoline)|Pop `x` from the stack and skip the next `x` instructions/cells.|
+|`" '`|[StringMode](#stringmode)|Start/end string mode. When in string mode, the Pointer pushes a string containing the instructions it finds to the stack instead of executing them.|
 |`0 1 2 3 4`  `5 6 7 8 9`|Digits|Push the corresponding digit to the stack.|
 |`w`|Where|If `(x,y)` is the position of the Pointer, push `x` and `y` to the stack.|
-|`j`|Jump|Pop `y` and `x` from the stack and jump to `(x,y)`.|
+|`j`|[Jump](#jump)|Pop `y` and `x` from the stack and jump to `(x,y)`.|
 |`_`|Negate|Pop `x` from the stack, then push `-x`.|
 |`+ - * | %`|Arith|Pop `y` and `x` from the stack, then push `x operator y`; `|` is integer division, `%` is remainder.|
 |`.`|Concat|Pop `y` and `x` from the stack, then push their string&#x2011;wise concatenation `x+y`.|
-|`= ( ) [ ]`|Cmp|Pop `y` and `x` from the stack, then push `"1"` if `x operator y` holds, otherwise push `"0"`. `=` is string&#x2011;wise equality, `(` and `)` are string&#x2011;wise lexicographical comparisons (respectively smaller than, larger than), `[` and `]` are integer comparisons (respectively smaller than, larger than).
+|`= ( ) [ ]`|[Cmp](#cmp)|Pop `y` and `x` from the stack, then push `"1"` if `x operator y` holds, otherwise push `"0"`. `=` is string&#x2011;wise equality, `(` and `)` are string&#x2011;wise lexicographical comparisons (respectively smaller than, larger than), `[` and `]` are integer comparisons (respectively smaller than, larger than).
 |`,`|Duplicate|Pop `x` from the stack, then push `x` and `x`.|
 |`~`|Pop|Pop `x` from the stack.|
 |`$`|Swap|Pop `y` and `x` from the stack, then push `y` and `x`.|
-|`:`|Flatten'|Concatenate all the strings in the stack in a single string.|
-|`f`|Flatten|Pop `x` from the stack, then concatenate all the string in the stack using `x ` as separator.|
-|`{ }`|Rotate|Rotate the stack respectively to the left and to the right.|
-|`r`|Reverse|Reverse the stack.|
+|`:`|[Flatten'](#flatten-flatten-rotate-reverse)|Concatenate all the strings in the stack in a single string.|
+|`f`|[Flatten](#flatten-flatten-rotate-reverse)|Pop `x` from the stack, then concatenate all the string in the stack using `x ` as separator.|
+|`{ }`|[Rotate](#flatten-flatten-rotate-reverse)|Rotate the stack respectively to the left and to the right.|
+|`r`|[Reverse](#flatten-flatten-rotate-reverse)|Reverse the stack.|
 |`n`|New|Pop `x` from the stack, then split the stack in two, creating a new one: the last `x` elements of the old stack, preserving their order, become the elements of the new stack.|
 |`m`|Merge|Merge the stack with the stack underlying; if the current stack is the only one, then empty it.|
 |`d`|SDuplicate|Create a new stack identical to the underlying one.|
@@ -91,10 +91,10 @@ Here is the complete list of Pota instructions; see below for more detailed desc
 ### Arrows
 When one of the instructions `> < v ^` is executed, the direction of the Pointer changes immediately.
 
-- `>`: Right `(1,0)`
-- `<`: Left `(-1,0)`
-- `v`: Down `(0,1)`
-- `^`: Up `(0,-1)`
+- `>`: right `(1,0)`
+- `<`: left `(-1,0)`
+- `v`: down `(0,1)`
+- `^`: up `(0,-1)`
 
 For example, consider the following code:
 
@@ -103,7 +103,7 @@ v
 ^
 ```
 
-At the beginning of the execution, a Pointer is created ad `(0,0)`, facing Right, but it immediately executes `v`, so its directions becomes Down. The Pointer then moves to `(0,1)`, where it executes `^`, so that it faces Up. With the next move, the Pointer goes to `(0,0)` again, where it executes `v` and changes its direction to Down. This sequence of actions is clearly repeated indefinitely, while the Pointer endlessly bounces from `(0,0)` to `(0,1)` and back.
+At the beginning of the execution, a Pointer is created ad `(0,0)`, facing right, but it immediately executes `v`, so its directions becomes down. The Pointer then moves to `(0,1)`, where it executes `^`, so that it faces up. With the next move, the Pointer goes to `(0,0)` again, where it executes `v` and changes its direction to down. This sequence of actions is clearly repeated indefinitely, while the Pointer endlessly bounces from `(0,0)` to `(0,1)` and back.
 
 ### Mirrors
 When one of the instructions `/ \ x` is executed, the direction of the Pointer changes immediately.  
@@ -120,7 +120,7 @@ For example, consider the following code:
 \/
 ```
 
-The Pointer starts at `(0,0)` facing Right, but it immediately bounces against `/` and starts moving Up. Remember that Pota code grid is toroidal, so the Pointer wraps around to somewhere on the first column and keeps moving Up, until it bounces against `\` in `(0,1)`. Try to follow the path of the Pointer as it moves Left, wraps around, bounces against `/` in `(1,1)`, moves Down, wraps around again, bounces against `\` in `(1,0)`, moves Right and wraps around to `(0,0)`, finding itself stuck in an endless loop.
+The Pointer starts at `(0,0)` facing right, but it immediately bounces against `/` and starts moving up. Remember that Pota code grid is toroidal, so the Pointer wraps around to somewhere on the first column and keeps moving up, until it bounces against `\` in `(0,1)`. Try to follow the path of the Pointer as it moves left, wraps around, bounces against `/` in `(1,1)`, moves down, wraps around again, bounces against `\` in `(1,0)`, moves right and wraps around to `(0,0)`, finding itself stuck in an endless loop.
 
 ### Skip, CondSkip, Trampoline
 `!` (Skip) instruction has the following effect:
@@ -134,7 +134,7 @@ Consider the following examples:
 !;0o
 ```
 
-The Pointer starts at `(0,0)` facing Right, it executes `!` and thus skips `;`. It then executes `0`, pushing `"0"` to the stack, and `o`, popping `"0"` from the stack and outputting it, before wrapping around to `(0,0)` and repeating.
+The Pointer starts at `(0,0)` facing right, it executes `!` and thus skips `;`. It then executes `0`, pushing `"0"` to the stack, and `o`, popping `"0"` from the stack and outputting it, before wrapping around to `(0,0)` and repeating.
 
 ```nohighlight
 "!;0o"`;
@@ -199,7 +199,7 @@ Sometimes it is necessary to perform boolean algebra with values obtained from C
 - `+0]` is equivalent to logical or, although if you want to use it in conjunction with `?` (CondSkip) you may as well write `+?` instead of `+0]?`.
 - `+1=` is equivalent to logical xor.
 
-### Flatten', Flatten, Intercalate, Rotate, Reverse
+### Flatten', Flatten, Rotate, Reverse
 These instructions affect the entire stack. Let us see what they do with some examples.
 
 `:` (Flatten') concatenates all the string in the stack into a single string. For instance, if the stack is `["abc", "def", "0"]`, after executing `:` it will look like this: `["abcdef0"]`.  
