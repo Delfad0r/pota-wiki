@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+
+	<title>The Language - Pota wiki</title>
+
+        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome-4.5.0.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../css/highlight.css">
+        <link href="../../css/extra.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="../..">Pota wiki</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li >
+                        <a href="../..">Overview</a>
+                    </li>
+                
+                
+                
+                    <li class="dropdown active">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Documentation <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                        
+                            
+<li class="active">
+    <a href="./">The Language</a>
+</li>
+
+                        
+                        </ul>
+                    </li>
+                
+                
+                </ul>
+            
+
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                
+                    <li >
+                        <a rel="next" href="../..">
+                            <i class="fa fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li class="disabled">
+                        <a rel="prev" >
+                            Next <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </li>
+                
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#the-language">The Language</a></li>
+        
+            <li><a href="#code">Code</a></li>
+        
+            <li><a href="#pointers">Pointers</a></li>
+        
+            <li><a href="#instructions">Instructions</a></li>
+        
+    
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="the-language">The Language</h1>
+<h2 id="code">Code</h2>
+<p>Pota source files have the extension <code>.pota</code>.</p>
+<p>Pota source code can be viewed as a 2D grid, where each cell stores a character; empty cells act as if they contained an empty space. Cells are referenced to with pairs of coordinates <code>(x,y)</code> where <code>x</code> stands for "character" and <code>y</code> stands for "line". <code>x</code> and <code>y</code> are both 0&#x2011;indexed; <code>(0,0)</code> is the top&#x2011;left cell. Note that if the first line begins with <code>#!</code> it is ignored by the interpreter in order to allow shebang&#x2011;ed scripts; in this case the second line has index 0 instead of the first.</p>
+<p>For instance, if the source code is the following</p>
+<pre><code class="nohighlight">&gt;v
+^&lt;
+</code></pre>
+
+<p>then cell <code>(0,0)</code> contains <code>&gt;</code>, cell <code>(1,0)</code> contains <code>v</code>, cell <code>(1,1)</code> contains <code>&lt;</code> and cell <code>(0,1)</code> contains <code>^</code>.</p>
+<p>When the program starts, all the cells contain at most one character, but nothing stops them from storing strings of arbitrary length later in the execution: in Pota, characters are just strings of length 1, and the code can be modified at runtime. So, in general, a cell contains a string of 0 or more characters.<br />
+Note that an empty cell and a cell storing an empty string are different things: the former is a cell whose value was not specified in the code, and thus defaults to containing an empty space <code>" "</code>, while the latter <em>does</em> store an empty string <code>""</code>.</p>
+<h2 id="pointers">Pointers</h2>
+<p>Pointers are the objects that execute instructions found in the source code, and they do this by physically moving on the code itself.</p>
+<p>The behaviour of a Pointer is determined by the following variables.</p>
+<ul>
+<li><strong>Id</strong>: a unique identifier of the Pointer, used to send messages between Pointers.</li>
+<li><strong>Position</strong>: a pair of <code>(x,y)</code> coordinates representing the location of the Pointer.</li>
+<li><strong>Direction</strong>: one of <code>(1,0)</code> (right), <code>(-1,0)</code> (left), <code>(0,1)</code> (down), <code>(0,-1)</code> (up)</li>
+<li><strong>Stacks</strong>: a stack of stacks; it is the main storage system for the Pointer; many instructions interact in different ways with it, but only the topmost stack can be accessed; when we say "the stack", we actually refer to the topmost stack in the stack of stacks; recall that the only data type in Pota is <code>string</code>, so stacks can only hold strings.</li>
+<li><strong>Messages</strong>: a FIFO queue that collects messages sent by other Pointers (or possibly by the Pointer to itself).</li>
+<li><strong>Instructions</strong>: a queue that stores instructions to be executed and supports insertion to both front and back and deletion from the front.</li>
+</ul>
+<h3 id="program-execution">Program Execution</h3>
+<p>At the beginning of the program execution, a single Pointer is created at <code>(0,0)</code> facing right.<br />
+When a Pointer is created, all the characters in the string contained in the cell the Pointer is standing in are pushed, in order, to the back of the instructions queue. Then, until the Pointer is alive, it repeatedly performs the following operations:</p>
+<ul>
+<li>if the instructions queue is empty, it moves one cell in the direction it is facing; then, all the characters in the string contained in the cell the Pointer is standing in are pushed, in order, to the back of the instructions queue;</li>
+<li>otherwise, a single instruction is popped from the front of the instructions queue and executed.</li>
+</ul>
+<p>If a Pointer is on an empty cell and sees nothing but empty cells ahead of it, it will eventually wrap around to the other side of the code; the exact moment when this happens is implementation&#x2011;defined, though.<br />
+If, instead, a Pointer is on the negative side of the code (either <code>x&lt;0</code> or <code>y&lt;0</code>), then it will immediately wrap around, without even reading the instructions in the cell it was on.</p>
+<p>When a Pointer executes the <code>;</code> (Die) instruction it immediately dies (stops being alive).<br />
+The execution ends when there are no more Pointers alive.</p>
+<p>If there are multiple Pointers alive at the same time, the order of execution is unspecified. Thus, a program should never rely on a Pointer performing some operations before another Pointer, unless that program appropriately makes use of <code>#</code> (Wait) and <code>@</code> (Send) instructions for communication between Pointers.</p>
+<h2 id="instructions">Instructions</h2>
+<p>Here is the complete list of Pota instructions; see below for more detailed descriptions.</p>
+<table>
+<thead>
+<tr>
+<th>Instruction</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&gt; &lt; v ^</code></td>
+<td>Arrows</td>
+<td>Change the direction of the Pointer.</td>
+</tr>
+<tr>
+<td><code>/ \ x</code></td>
+<td>Mirrors</td>
+<td>Change the direction of the Pointer depending on the current direction. <code>x</code> chooses a random direction.</td>
+</tr>
+<tr>
+<td><code>!</code></td>
+<td>Skip</td>
+<td>Skip the next instruction/cell.</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>CondSkip</td>
+<td>Conditional skip: pop <code>x</code> from the stack and skip the next instruction/cell if <code>x</code> is anything but <code>"0"</code>.</td>
+</tr>
+<tr>
+<td><code>t</code></td>
+<td>Trampoline</td>
+<td>Pop <code>x</code> from the stack and skip the next <code>x</code> instructions/cells.</td>
+</tr>
+<tr>
+<td><code>" '</code></td>
+<td>StringMode</td>
+<td>Start/end string mode. When in string mode, the Pointer pushes a string containing the instructions it finds to the stack instead of executing them.</td>
+</tr>
+<tr>
+<td><code>0 1 2 3 4</code>  <code>5 6 7 8 9</code></td>
+<td>Digits</td>
+<td>Push the corresponding digit to the stack.</td>
+</tr>
+<tr>
+<td><code>w</code></td>
+<td>Where</td>
+<td>If <code>(x,y)</code> is the position of the Pointer, push <code>x</code> and <code>y</code> to the stack.</td>
+</tr>
+<tr>
+<td><code>j</code></td>
+<td>Jump</td>
+<td>Pop <code>y</code> and <code>x</code> from the stack and jump to <code>(x,y)</code>.</td>
+</tr>
+<tr>
+<td><code>_</code></td>
+<td>Negate</td>
+<td>Pop <code>x</code> from the stack, then push <code>-x</code>.</td>
+</tr>
+<tr>
+<td><code>+ - * | %</code></td>
+<td>Arith</td>
+<td>Pop <code>y</code> and <code>x</code> from the stack, then push <code>x operator y</code>; <code>|</code> is integer division, <code>%</code> is remainder.</td>
+</tr>
+<tr>
+<td><code>.</code></td>
+<td>Concat</td>
+<td>Pop <code>y</code> and <code>x</code> from the stack, then push their string&#x2011;wise concatenation <code>x+y</code>.</td>
+</tr>
+<tr>
+<td><code>= ( ) [ ]</code></td>
+<td>Cmp</td>
+<td>Pop <code>y</code> and <code>x</code> from the stack, then push <code>"1"</code> if <code>x operator y</code> holds, otherwise push <code>"0"</code>. <code>=</code> is string&#x2011;wise equality, <code>(</code> and <code>)</code> are string&#x2011;wise lexicographical comparisons (respectively smaller than, larger than), <code>[</code> and <code>]</code> are integer comparisons (respectively smaller than, larger than).</td>
+</tr>
+<tr>
+<td><code>,</code></td>
+<td>Duplicate</td>
+<td>Pop <code>x</code> from the stack, then push <code>x</code> and <code>x</code>.</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>Pop</td>
+<td>Pop <code>x</code> from the stack.</td>
+</tr>
+<tr>
+<td><code>$</code></td>
+<td>Swap</td>
+<td>Pop <code>y</code> and <code>x</code> from the stack, then push <code>y</code> and <code>x</code>.</td>
+</tr>
+<tr>
+<td><code>:</code></td>
+<td>Flatten'</td>
+<td>Concatenate all the strings in the stack in a single string.</td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>Flatten</td>
+<td>Pop <code>x</code> from the stack, then concatenate all the string in the stack using <code>x</code> as separator.</td>
+</tr>
+<tr>
+<td><code>{ }</code></td>
+<td>Rotate</td>
+<td>Rotate the stack respectively to the left and to the right.</td>
+</tr>
+<tr>
+<td><code>r</code></td>
+<td>Reverse</td>
+<td>Reverse the stack.</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>New</td>
+<td>Pop <code>x</code> from the stack, then split the stack in two, creating a new one: the last <code>x</code> elements of the old stack, preserving their order, become the elements of the new stack.</td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td>Merge</td>
+<td>Merge the stack with the stack underlying; if the current stack is the only one, then empty it.</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>SDuplicate</td>
+<td>Create a new stack identical to the underlying one.</td>
+</tr>
+<tr>
+<td><code>e</code></td>
+<td>Explode</td>
+<td>Pop <code>x</code> from the stack, then add a new stack containing the characters of <code>x</code>, in order.</td>
+</tr>
+<tr>
+<td><code>s</code></td>
+<td>Split</td>
+<td>Pop <code>y</code> and <code>x</code> from the stack, then add a new stack containing the result of splitting <code>x</code> with <code>y</code> as separator.</td>
+</tr>
+<tr>
+<td><code>l</code></td>
+<td>Length</td>
+<td>Push the length of the stack to the stack.</td>
+</tr>
+<tr>
+<td><code>`</code></td>
+<td>Exec</td>
+<td>Pop <code>x</code> from the stack, then push all the characters of <code>x</code> to the front of the instructions queue, so that the corresponding instructions are executed in order.</td>
+</tr>
+<tr>
+<td><code>g</code></td>
+<td>Get</td>
+<td>Pop <code>y</code> and <code>x</code> from the stack, then push the value of cell <code>(x,y)</code>.</td>
+</tr>
+<tr>
+<td><code>p</code></td>
+<td>Put</td>
+<td>Pop <code>y</code>, <code>x</code> and <code>v</code> from the stack and set cell <code>(x, y)</code> to <code>v</code>.</td>
+</tr>
+<tr>
+<td><code>&amp;</code></td>
+<td>Spawn</td>
+<td>Pop <code>x</code> from the stack, then create a new Pointer in the cell in front of the current position of the Pointer; the new Pointer will have the same direction as the old one, and <code>x</code> elements will be transferred from the stack of the old Pointer to that of the new one.</td>
+</tr>
+<tr>
+<td><code>#</code></td>
+<td>Wait</td>
+<td>Wait until the messages queue is not empty, then push one message to the stack, removing it from the queue.</td>
+</tr>
+<tr>
+<td><code>@</code></td>
+<td>Send</td>
+<td>Pop <code>y</code> and <code>x</code> from the stack, then send the message <code>x</code> to Pointer with id <code>y</code>.</td>
+</tr>
+<tr>
+<td><code>y</code></td>
+<td>Id</td>
+<td>Push the id of the Pointer to the stack.</td>
+</tr>
+<tr>
+<td><code>c</code></td>
+<td>Chr</td>
+<td>Pop <code>x</code> from the stack, then push the character with ASCII value <code>x</code>.</td>
+</tr>
+<tr>
+<td><code>a</code></td>
+<td>Ord</td>
+<td>Pop <code>x</code> from the stack, then push the ASCII value of <code>x</code>.</td>
+</tr>
+<tr>
+<td><code>i</code></td>
+<td>In</td>
+<td>Read one character from <code>stdin</code> and push it to the stack.</td>
+</tr>
+<tr>
+<td><code>o</code></td>
+<td>Out</td>
+<td>Pop <code>x</code> from the stack and print it.</td>
+</tr>
+<tr>
+<td><code>;</code></td>
+<td>Die</td>
+<td>Stop being alive.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="arrows">Arrows</h3>
+<p>When one of the instructions <code>&gt; &lt; v ^</code> is executed, the direction of the Pointer changes immediately.</p>
+<ul>
+<li><code>&gt;</code>: right <code>(1,0)</code></li>
+<li><code>&lt;</code>: left <code>(-1,0)</code></li>
+<li><code>v</code>: down <code>(0,1)</code></li>
+<li><code>^</code>: up <code>(0,-1)</code></li>
+</ul>
+<p>For example, consider the following code:</p>
+<pre><code class="nohighlight">v
+^
+</code></pre>
+
+<p>At the beginning of the execution, a Pointer is created ad <code>(0,0)</code>, facing right, but it immediately executes <code>v</code>, so its directions becomes down. The Pointer then moves to <code>(0,1)</code>, where it executes <code>^</code>, so that it faces up. With the next move, the Pointer goes to <code>(0,0)</code> again, where it executes <code>v</code> and changes its direction to down. This sequence of actions is clearly repeated indefinitely, while the Pointer endlessly bounces from <code>(0,0)</code> to <code>(0,1)</code> and back.</p>
+<h3 id="mirrors">Mirrors</h3>
+<p>When one of the instructions <code>/ \ x</code> is executed, the direction of the Pointer changes immediately.<br />
+<code>x</code> selects a random direction.<br />
+The other mirrors behave as follows; if the direction was <code>(u,v)</code>, it becomes</p>
+<ul>
+<li><code>/</code>: <code>(-v,-u)</code></li>
+<li><code>\</code>: <code>(v,u)</code></li>
+</ul>
+<p>For example, consider the following code:</p>
+<pre><code class="nohighlight">/\
+\/
+</code></pre>
+
+<p>The Pointer starts at <code>(0,0)</code> facing right, but it immediately bounces against <code>/</code> and starts moving up. Remember that Pota code grid is toroidal, so the Pointer wraps around to somewhere on the first column and keeps moving up, until it bounces against <code>\</code> in <code>(0,1)</code>. Try to follow the path of the Pointer as it moves left, wraps around, bounces against <code>/</code> in <code>(1,1)</code>, moves down, wraps around again, bounces against <code>\</code> in <code>(1,0)</code>, moves right and wraps around to <code>(0,0)</code>, finding itself stuck in an endless loop.</p>
+<h3 id="skip-condskip-trampoline">Skip, CondSkip, Trampoline</h3>
+<p><code>!</code> (Skip) instruction has the following effect:</p>
+<ul>
+<li>if the instructions queue is not empty, discard the next instruction (pop from the front without executing anything);</li>
+<li>if the instructions queue is empty, ignore <em>all</em> the instructions found in the next cell.</li>
+</ul>
+<p>Consider the following examples:</p>
+<pre><code class="nohighlight">!;0o
+</code></pre>
+
+<p>The Pointer starts at <code>(0,0)</code> facing right, it executes <code>!</code> and thus skips <code>;</code>. It then executes <code>0</code>, pushing <code>"0"</code> to the stack, and <code>o</code>, popping <code>"0"</code> from the stack and outputting it, before wrapping around to <code>(0,0)</code> and repeating.</p>
+<pre><code class="nohighlight">&quot;!;0o&quot;`;
+</code></pre>
+
+<p>In this example the Pointer enters string mode and pushes <code>"!;0o"</code> to the stack. When <code>`</code> is executed, instructions <code>! ; 0 o</code> are pushed to the instructions queue: <code>!</code> is executed, <code>;</code> is skipped, <code>0</code> and <code>o</code> are executed (so <code>"0"</code> is printed). Then, the Pointer moves to <code>(7,0)</code>, executes <code>;</code> and dies.</p>
+<p><code>?</code> (CondSkip) is equivalent to the following:</p>
+<ol>
+<li>Pop <code>x</code> from the stack.</li>
+<li>If <code>x</code> is <code>"0"</code> do nothing, otherwise execute <code>!</code>.</li>
+</ol>
+<p><code>t</code> (Trampoline) is an enhanced <code>!</code>: it pops <code>x</code> from the stack, then skips the next <code>x</code> "actions", where an "action" is one of</p>
+<ol>
+<li>executing an instruction from the instructions queue</li>
+<li>pushing the content of a cell to the instructions queue</li>
+</ol>
+<p>For example, consider the following code</p>
+<pre><code class="nohighlight">&quot;02t;&quot;`;o;
+</code></pre>
+
+<p>The Pointer pushes <code>"02t;"</code> to the stack, then executes it thanks to <code>`</code> in <code>(6,0)</code>: <code>"0"</code> is pushed, then <code>"2"</code>, then <code>t</code> is executed, so the next <code>2</code> actions are skipped (the <code>;</code> in the string and the <code>;</code> in <code>(7,0)</code>. Finally, <code>"0"</code> is printed and the Pointer dies.</p>
+<h3 id="stringmode">StringMode</h3>
+<p>When the Pointer executed one of <code>" '</code> it enters string mode: until a matching quote is found, all the characters encountered are added verbatim to a temporary string, that is pushed to the stack when the Pointer exits string mode.<br />
+For example, consider the following code:</p>
+<pre><code class="nohighlight">&quot;123abc;'&quot;o;
+</code></pre>
+
+<p>In <code>(0,0)</code> the Pointer enter string mode, which lasts until <code>(9,0)</code>; here, string <code>"123abc;'"</code> is pushed to the stack, and is printed when <code>o</code> is executed. Note that <code>123abc;</code> are not executed as instructions, and even <code>'</code> is skipped, since it does not match the <code>"</code> opening quote.</p>
+<p>Consider the following more complicated example:</p>
+<pre><code class="nohighlight">&quot;o;&quot;30p
+</code></pre>
+
+<p>At the beginning, the Pointer enters string mode, reads <code>"o;"</code>, and exits string mode at <code>(3,0)</code>; so, at <code>(3,0)</code>, the stack looks like this: <code>["o;"]</code>. Then <code>3</code> and <code>0</code> are executed; when <code>p</code> is executed, the stack looks like this <code>["o;", "3", "0"]</code>, so value <code>"o;"</code> is put at <code>(3,0)</code>, where the <code>"</code> was. The Pointer wraps around and, at <code>(0,0)</code>, enters string mode again: it reads <code>"o"</code>, <code>";"</code>, then in <code>(3,0)</code> it reads <code>o;</code>, then <code>"3"</code>, <code>"0"</code>, <code>"p"</code>; finally, it wraps around and exits string mode at <code>(0,0)</code>. At this moment, the stack looks like this: <code>["o;o;30p"]</code> (plus an arbitrary number of spaces that we will ignore for the moment). The Pointer moves to <code>(1,0)</code>, where it executes <code>o</code> (printing <code>"o;o;30p"</code>), then it executes <code>;</code> and dies.</p>
+<p>Since in Pota numbers are strings, string mode is useful for pushing long numbers to the stack. For instance, the code <code>"123""456"+o;</code> will output <code>"579"</code>.</p>
+<h3 id="jump">Jump</h3>
+<p><code>j</code> (Jump) lets the Pointer jump anywhere in the code grid, by popping <code>y</code> and <code>x</code> from the stack and teleporting to <code>(x,y)</code>.<br />
+There are two things to bear in mind:</p>
+<ul>
+<li>the Pointer is not allowed to jump to <code>(x,y)</code> if either <code>x&lt;0</code> or <code>y&lt;0</code></li>
+<li>the Pointer should jump to the cell <em>before</em> the one containing the instructions you want to execute, as the Pointer will move before adding new instructions to the instructions queue</li>
+</ul>
+<h3 id="cmp">Cmp</h3>
+<p><code>=</code> is <em>string-wise</em> equality: for instance, <code>"1""01"=o;</code> will output <code>"0"</code>, since <code>"1"!="01"</code>, although <code>1=01</code>.</p>
+<p>The difference between <code>(</code> and <code>[</code> is subtle, but important. The former performs string&#x2011;wise lexicographical comparison, while the latter is for integer comparison: for instance, <code>"12""2"(o;</code> will output <code>"1"</code>, since "12" is lexicographically smaller than <code>"2"</code>, while <code>"12""2"[o;</code> will output <code>"0"</code>, since <code>12</code> is larger than <code>2</code>.</p>
+<p>Sometimes it is necessary to perform boolean algebra with values obtained from Cmp instructions. Pota does not have native logical operators, but those can be easily implemented.</p>
+<ul>
+<li><code>1$-</code> is equivalent to logical not.</li>
+<li><code>*</code> is equivalent to logical and.</li>
+<li><code>+0]</code> is equivalent to logical or, although if you want to use it in conjunction with <code>?</code> (CondSkip) you may as well write <code>+?</code> instead of <code>+0]?</code>.</li>
+<li><code>+1=</code> is equivalent to logical xor.</li>
+</ul>
+<h3 id="flatten-flatten-intercalate-rotate-reverse">Flatten', Flatten, Intercalate, Rotate, Reverse</h3>
+<p>These instructions affect the entire stack. Let us see what they do with some examples.</p>
+<p><code>:</code> (Flatten') concatenates all the string in the stack into a single string. For instance, if the stack is <code>["abc", "def", "0"]</code>, after executing <code>:</code> it will look like this: <code>["abcdef0"]</code>.<br />
+When used in conjunction with <code>~</code> (Pop), <code>:</code> can be used to clear the stack (whatever the stack looks like, after executing <code>:~</code> it will be empty).</p>
+<p><code>f</code> (Flatten) is the general version of <code>:</code>, as it accepts the separator as an argument. <code>f</code> pops <code>x</code> from the stack and uses it as a separator to concatenate all the strings in the stack. For instance, if the stack is <code>["ab", "cd", "ef", ", "]</code>, after executing <code>f</code> it will look like this: <code>["ab, cd, ef"]</code>.<br />
+<code>:</code> is equivalent to <code>""f</code>.</p>
+<p><code>{</code> and <code>}</code> (Rotate) rotate the stack, respectively, left and right. For instance, if the stack is <code>["1", "2", "3", "4"]</code>, after executing <code>{</code> it will look like this: <code>["2", "3", "4", "1"]</code>. After executing <code>}</code>, instead, it will look like this: <code>["4", "1", "2", "3"]</code>.</p>
+<p><code>r</code> (Reverse) reverses the stack. For instance, if the stack is <code>["1", "2", "3", "4"]</code>, after executing <code>r</code> it will look like this: <code>["4", "3", "2", "1"]</code>.</p>
+<h3 id="new-merge-sduplicate-explode-split">New, Merge, SDuplicate, Explode, Split</h3>
+<p>Pointers support multiple stacks, although only the topmost one can ever be accessed.</p>
+<p><code>n</code> (New) splits the topmost stack: <code>x</code> is popped, then the last <code>x</code> elements of the stack are moved to a new stack, which is placed "above" the old one. For instance, if the stack is <code>["a", "b", "c", "2"]</code>, when <code>n</code> is executed <code>"2"</code> is popped, then the last <code>2</code> elements are moved to a new stack. In the end there will be two stacks, and they will look like this: <code>["a"] ["b", "c"]</code>.</p>
+<p><code>m</code> (Merge) merges the two topomost stacks. For instance, if there are three stacks <code>["a"] ["b", "c"] ["d", "e"]</code>, after executing <code>m</code> there will be two, looking like this: <code>["a"] ["b", "c", "d", "e"]</code>.<br />
+If there is only one stack, <code>m</code> will clear it.</p>
+<p><code>d</code> (SDuplicate) creates a new stack identical to the topmost one and puts the new stack "above" the old one (or the other way around, not that it really matters). For instance, if there are two stacks <code>["a", "b"] ["c", "d"]</code>, aftere executing <code>d</code> there will be three, looking like this: <code>["a", "b"] ["c", "d"] ["c", "d"]</code>.</p>
+<p><code>e</code> (Explode) pops <code>x</code>, then creates a new stack containing <code>x</code> "exploded" to characters. For instance, if the stack is <code>["ab", "cdefg"]</code>, after executing <code>e</code> there will be two stacks, looking like this: <code>["ab"] ["c", "d", "e", "f", "g"]</code>.</p>
+<p><code>s</code> (Split) pops <code>y</code> and <code>x</code>, then creates a new stack containing <code>x</code> "split" using <code>y</code> as a separator. For instance, if the stack is <code>["a&lt;&gt;b&lt;&gt;&lt;&gt;cd", "&lt;&gt;"]</code>, after executing <code>s</code> there will be two stacks, looking like this <code>[] ["a", "b", "", "cd"]</code>.<br />
+Make sure <code>y</code> is not the empty string or the program will crash.</p>
+<h3 id="get-put">Get, Put</h3>
+<p>Pota programs have the ability to read and modify their own source code. There are two main reasons for doing this.</p>
+<ol>
+<li><strong>Storage</strong>: regions of the source code that are never visited by Pointers can be used to store and retrieve data. Negative regions of the code (either <code>x&lt;0</code> or <code>y&lt;0</code>) are well suited for this purpose, since a Pointer cannot visit them.</li>
+<li><strong>Execution</strong>: regions of the source code that are eventually visited by Pointers can be modified to cleverly alter their behaviour in potentially infinitely many ways.</li>
+</ol></div>
+            
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+
+        <script src="../../js/jquery-1.10.2.min.js"></script>
+        <script src="../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../js/highlight.pack.js"></script>
+        <script>var base_url = '../..';</script>
+        <script data-main="../../mkdocs/js/search.js" src="../../mkdocs/js/require.js"></script>
+        <script src="../../js/base.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            From here you can search these documents. Enter
+                            your search terms below.
+                        </p>
+                        <form role="form">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
+                            </div>
+                        </form>
+                        <div id="mkdocs-search-results"></div>
+                    </div>
+                    <div class="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>

@@ -1,0 +1,234 @@
+# The Language
+
+## Code
+Pota source files have the extension `.pota`.
+
+Pota source code can be viewed as a 2D grid, where each cell stores a character; empty cells act as if they contained an empty space. Cells are referenced to with pairs of coordinates `(x,y)` where `x` stands for "character" and `y` stands for "line". `x` and `y` are both 0&#x2011;indexed; `(0,0)` is the top&#x2011;left cell. Note that if the first line begins with `#!` it is ignored by the interpreter in order to allow shebang&#x2011;ed scripts; in this case the second line has index 0 instead of the first.
+
+For instance, if the source code is the following
+
+```nohighlight
+>v
+^<
+```
+
+then cell `(0,0)` contains `>`, cell `(1,0)` contains `v`, cell `(1,1)` contains `<` and cell `(0,1)` contains `^`.
+
+When the program starts, all the cells contain at most one character, but nothing stops them from storing strings of arbitrary length later in the execution: in Pota, characters are just strings of length 1, and the code can be modified at runtime. So, in general, a cell contains a string of 0 or more characters.  
+Note that an empty cell and a cell storing an empty string are different things: the former is a cell whose value was not specified in the code, and thus defaults to containing an empty space `" "`, while the latter *does* store an empty string `""`.
+
+## Pointers
+Pointers are the objects that execute instructions found in the source code, and they do this by physically moving on the code itself.
+
+The behaviour of a Pointer is determined by the following variables.
+
+- **Id**: a unique identifier of the Pointer, used to send messages between Pointers.
+- **Position**: a pair of `(x,y)` coordinates representing the location of the Pointer.
+- **Direction**: one of `(1,0)` (right), `(-1,0)` (left), `(0,1)` (down), `(0,-1)` (up)
+- **Stacks**: a stack of stacks; it is the main storage system for the Pointer; many instructions interact in different ways with it, but only the topmost stack can be accessed; when we say "the stack", we actually refer to the topmost stack in the stack of stacks; recall that the only data type in Pota is `string`, so stacks can only hold strings.
+- **Messages**: a FIFO queue that collects messages sent by other Pointers (or possibly by the Pointer to itself).
+- **Instructions**: a queue that stores instructions to be executed and supports insertion to both front and back and deletion from the front.
+
+### Program Execution
+At the beginning of the program execution, a single Pointer is created at `(0,0)` facing Right.  
+When a Pointer is created, all the characters in the string contained in the cell the Pointer is standing in are pushed, in order, to the back of the instructions queue. Then, until the Pointer is alive, it repeatedly performs the following operations:
+
+- if the instructions queue is empty, it moves one cell in the direction it is facing; then, all the characters in the string contained in the cell the Pointer is standing in are pushed, in order, to the back of the instructions queue;
+- otherwise, a single instruction is popped from the front of the instructions queue and executed.
+
+If a Pointer is on an empty cell and sees nothing but empty cells ahead of it, it will eventually wrap around to the other side of the code; the exact moment when this happens is implementation&#x2011;defined, though.  
+If, instead, a Pointer is on the negative side of the code (either `x<0` or `y<0`), then it will immediately wrap around, without even reading the instructions in the cell it was on.
+
+When a Pointer executes the `;` (Die) instruction it immediately dies (stops being alive).  
+The execution ends when there are no more Pointers alive.
+
+If there are multiple Pointers alive at the same time, the order of execution is unspecified. Thus, a program should never rely on a Pointer performing some operations before another Pointer, unless that program appropriately makes use of `#` (Wait) and `@` (Send) instructions for communication between Pointers.
+
+## Instructions
+Here is the complete list of Pota instructions; see below for more detailed descriptions.
+
+| Instruction 	| Name 	| Description 	|
+|-------------	|------	|-------------	|
+|`> < v ^`|Arrows|Change the direction of the Pointer.|
+|`/ \ x`|Mirrors|Change the direction of the Pointer depending on the current direction. `x` chooses a random direction.|
+|`!`|Skip|Skip the next instruction/cell.|
+|`?`|CondSkip|Conditional skip: pop `x` from the stack and skip the next instruction/cell if `x` is anything but `"0"`.|
+|`t`|Trampoline|Pop `x` from the stack and skip the next `x` instructions/cells.|
+|`" '`|StringMode|Start/end string mode. When in string mode, the Pointer pushes a string containing the instructions it finds to the stack instead of executing them.|
+|`0 1 2 3 4`  `5 6 7 8 9`|Digits|Push the corresponding digit to the stack.|
+|`w`|Where|If `(x,y)` is the position of the Pointer, push `x` and `y` to the stack.|
+|`j`|Jump|Pop `y` and `x` from the stack and jump to `(x,y)`.|
+|`_`|Negate|Pop `x` from the stack, then push `-x`.|
+|`+ - * | %`|Arith|Pop `y` and `x` from the stack, then push `x operator y`; `|` is integer division, `%` is remainder.|
+|`.`|Concat|Pop `y` and `x` from the stack, then push their string&#x2011;wise concatenation `x+y`.|
+|`= ( ) [ ]`|Cmp|Pop `y` and `x` from the stack, then push `"1"` if `x operator y` holds, otherwise push `"0"`. `=` is string&#x2011;wise equality, `(` and `)` are string&#x2011;wise lexicographical comparisons (respectively smaller than, larger than), `[` and `]` are integer comparisons (respectively smaller than, larger than).
+|`,`|Duplicate|Pop `x` from the stack, then push `x` and `x`.|
+|`~`|Pop|Pop `x` from the stack.|
+|`$`|Swap|Pop `y` and `x` from the stack, then push `y` and `x`.|
+|`:`|Flatten'|Concatenate all the strings in the stack in a single string.|
+|`f`|Flatten|Pop `x` from the stack, then concatenate all the string in the stack using `x ` as separator.|
+|`{ }`|Rotate|Rotate the stack respectively to the left and to the right.|
+|`r`|Reverse|Reverse the stack.|
+|`n`|New|Pop `x` from the stack, then split the stack in two, creating a new one: the last `x` elements of the old stack, preserving their order, become the elements of the new stack.|
+|`m`|Merge|Merge the stack with the stack underlying; if the current stack is the only one, then empty it.|
+|`d`|SDuplicate|Create a new stack identical to the underlying one.|
+|`e`|Explode|Pop `x` from the stack, then add a new stack containing the characters of `x`, in order.|
+|`s`|Split|Pop `y` and `x` from the stack, then add a new stack containing the result of splitting `x` with `y` as separator.|
+|`l`|Length|Push the length of the stack to the stack.|
+|`` ` ``|Exec|Pop `x` from the stack, then push all the characters of `x` to the front of the instructions queue, so that the corresponding instructions are executed in order.|
+|`g`|Get|Pop `y` and `x` from the stack, then push the value of cell `(x,y)`.|
+|`p`|Put|Pop `y`, `x` and `v` from the stack and set cell `(x, y)` to `v`.|
+|`&`|Spawn|Pop `x` from the stack, then create a new Pointer in the cell in front of the current position of the Pointer; the new Pointer will have the same direction as the old one, and `x` elements will be transferred from the stack of the old Pointer to that of the new one.|
+|`#`|Wait|Wait until the messages queue is not empty, then push one message to the stack, removing it from the queue.|
+|`@`|Send|Pop `y` and `x` from the stack, then send the message `x` to Pointer with id `y`.|
+|`y`|Id|Push the id of the Pointer to the stack.|
+|`c`|Chr|Pop `x` from the stack, then push the character with ASCII value `x`.|
+|`a`|Ord|Pop `x` from the stack, then push the ASCII value of `x`.|
+|`i`|In|Read one character from `stdin` and push it to the stack.|
+|`o`|Out|Pop `x` from the stack and print it.|
+|`;`|Die|Stop being alive.|
+
+### Arrows
+When one of the instructions `> < v ^` is executed, the direction of the Pointer changes immediately.
+
+- `>`: Right `(1,0)`
+- `<`: Left `(-1,0)`
+- `v`: Down `(0,1)`
+- `^`: Up `(0,-1)`
+
+For example, consider the following code:
+
+```nohighlight
+v
+^
+```
+
+At the beginning of the execution, a Pointer is created ad `(0,0)`, facing Right, but it immediately executes `v`, so its directions becomes Down. The Pointer then moves to `(0,1)`, where it executes `^`, so that it faces Up. With the next move, the Pointer goes to `(0,0)` again, where it executes `v` and changes its direction to Down. This sequence of actions is clearly repeated indefinitely, while the Pointer endlessly bounces from `(0,0)` to `(0,1)` and back.
+
+### Mirrors
+When one of the instructions `/ \ x` is executed, the direction of the Pointer changes immediately.  
+`x` selects a random direction.  
+The other mirrors behave as follows; if the direction was `(u,v)`, it becomes
+
+- `/`: `(-v,-u)`
+- `\`: `(v,u)`
+
+For example, consider the following code:
+
+```nohighlight
+/\
+\/
+```
+
+The Pointer starts at `(0,0)` facing Right, but it immediately bounces against `/` and starts moving Up. Remember that Pota code grid is toroidal, so the Pointer wraps around to somewhere on the first column and keeps moving Up, until it bounces against `\` in `(0,1)`. Try to follow the path of the Pointer as it moves Left, wraps around, bounces against `/` in `(1,1)`, moves Down, wraps around again, bounces against `\` in `(1,0)`, moves Right and wraps around to `(0,0)`, finding itself stuck in an endless loop.
+
+### Skip, CondSkip, Trampoline
+`!` (Skip) instruction has the following effect:
+
+- if the instructions queue is not empty, discard the next instruction (pop from the front without executing anything);
+- if the instructions queue is empty, ignore *all* the instructions found in the next cell.
+
+Consider the following examples:
+
+```nohighlight
+!;0o
+```
+
+The Pointer starts at `(0,0)` facing Right, it executes `!` and thus skips `;`. It then executes `0`, pushing `"0"` to the stack, and `o`, popping `"0"` from the stack and outputting it, before wrapping around to `(0,0)` and repeating.
+
+```nohighlight
+"!;0o"`;
+```
+
+In this example the Pointer enters string mode and pushes `"!;0o"` to the stack. When `` ` `` is executed, instructions `! ; 0 o` are pushed to the instructions queue: `!` is executed, `;` is skipped, `0` and `o` are executed (so `"0"` is printed). Then, the Pointer moves to `(7,0)`, executes `;` and dies.
+
+`?` (CondSkip) is equivalent to the following:
+
+1. Pop `x` from the stack.
+2. If `x` is `"0"` do nothing, otherwise execute `!`.
+
+`t` (Trampoline) is an enhanced `!`: it pops `x` from the stack, then skips the next `x` "actions", where an "action" is one of
+
+1. executing an instruction from the instructions queue
+2. pushing the content of a cell to the instructions queue
+
+For example, consider the following code
+
+```nohighlight
+"02t;"`;o;
+```
+
+The Pointer pushes `"02t;"` to the stack, then executes it thanks to `` ` `` in `(6,0)`: `"0"` is pushed, then `"2"`, then `t` is executed, so the next `2` actions are skipped (the `;` in the string and the `;` in `(7,0)`. Finally, `"0"` is printed and the Pointer dies.
+
+### StringMode
+When the Pointer executed one of `" '` it enters string mode: until a matching quote is found, all the characters encountered are added verbatim to a temporary string, that is pushed to the stack when the Pointer exits string mode.  
+For example, consider the following code:
+
+```nohighlight
+"123abc;'"o;
+```
+
+In `(0,0)` the Pointer enter string mode, which lasts until `(9,0)`; here, string `"123abc;'"` is pushed to the stack, and is printed when `o` is executed. Note that `123abc;` are not executed as instructions, and even `'` is skipped, since it does not match the `"` opening quote.
+
+Consider the following more complicated example:
+
+```nohighlight
+"o;"30p
+```
+
+At the beginning, the Pointer enters string mode, reads `"o;"`, and exits string mode at `(3,0)`; so, at `(3,0)`, the stack looks like this: `["o;"]`. Then `3` and `0` are executed; when `p` is executed, the stack looks like this `["o;", "3", "0"]`, so value `"o;"` is put at `(3,0)`, where the `"` was. The Pointer wraps around and, at `(0,0)`, enters string mode again: it reads `"o"`, `";"`, then in `(3,0)` it reads `o;`, then `"3"`, `"0"`, `"p"`; finally, it wraps around and exits string mode at `(0,0)`. At this moment, the stack looks like this: `["o;o;30p"]` (plus an arbitrary number of spaces that we will ignore for the moment). The Pointer moves to `(1,0)`, where it executes `o` (printing `"o;o;30p"`), then it executes `;` and dies.
+
+Since in Pota numbers are strings, string mode is useful for pushing long numbers to the stack. For instance, the code `"123""456"+o;` will output `"579"`.
+
+### Jump
+`j` (Jump) lets the Pointer jump anywhere in the code grid, by popping `y` and `x` from the stack and teleporting to `(x,y)`.  
+There are two things to bear in mind:
+
+- the Pointer is not allowed to jump to `(x,y)` if either `x<0` or `y<0`
+- the Pointer should jump to the cell *before* the one containing the instructions you want to execute, as the Pointer will move before adding new instructions to the instructions queue
+
+### Cmp
+`=` is *string-wise* equality: for instance, `"1""01"=o;` will output `"0"`, since `"1"!="01"`, although `1=01`.
+
+The difference between `(` and `[` is subtle, but important. The former performs string&#x2011;wise lexicographical comparison, while the latter is for integer comparison: for instance, `"12""2"(o;` will output `"1"`, since "12" is lexicographically smaller than `"2"`, while `"12""2"[o;` will output `"0"`, since `12` is larger than `2`.
+
+Sometimes it is necessary to perform boolean algebra with values obtained from Cmp instructions. Pota does not have native logical operators, but those can be easily implemented.
+
+- `1$-` is equivalent to logical not.
+- `*` is equivalent to logical and.
+- `+0]` is equivalent to logical or, although if you want to use it in conjunction with `?` (CondSkip) you may as well write `+?` instead of `+0]?`.
+- `+1=` is equivalent to logical xor.
+
+### Flatten', Flatten, Intercalate, Rotate, Reverse
+These instructions affect the entire stack. Let us see what they do with some examples.
+
+`:` (Flatten') concatenates all the string in the stack into a single string. For instance, if the stack is `["abc", "def", "0"]`, after executing `:` it will look like this: `["abcdef0"]`.  
+When used in conjunction with `~` (Pop), `:` can be used to clear the stack (whatever the stack looks like, after executing `:~` it will be empty).
+
+`f` (Flatten) is the general version of `:`, as it accepts the separator as an argument. `f` pops `x` from the stack and uses it as a separator to concatenate all the strings in the stack. For instance, if the stack is `["ab", "cd", "ef", ", "]`, after executing `f` it will look like this: `["ab, cd, ef"]`.  
+`:` is equivalent to `""f`.
+
+`{` and `}` (Rotate) rotate the stack, respectively, left and right. For instance, if the stack is `["1", "2", "3", "4"]`, after executing `{` it will look like this: `["2", "3", "4", "1"]`. After executing `}`, instead, it will look like this: `["4", "1", "2", "3"]`.
+
+`r` (Reverse) reverses the stack. For instance, if the stack is `["1", "2", "3", "4"]`, after executing `r` it will look like this: `["4", "3", "2", "1"]`.
+
+### New, Merge, SDuplicate, Explode, Split
+Pointers support multiple stacks, although only the topmost one can ever be accessed.
+
+`n` (New) splits the topmost stack: `x` is popped, then the last `x` elements of the stack are moved to a new stack, which is placed "above" the old one. For instance, if the stack is `["a", "b", "c", "2"]`, when `n` is executed `"2"` is popped, then the last `2` elements are moved to a new stack. In the end there will be two stacks, and they will look like this: `["a"] ["b", "c"]`.
+
+`m` (Merge) merges the two topomost stacks. For instance, if there are three stacks `["a"] ["b", "c"] ["d", "e"]`, after executing `m` there will be two, looking like this: `["a"] ["b", "c", "d", "e"]`.  
+If there is only one stack, `m` will clear it.
+
+`d` (SDuplicate) creates a new stack identical to the topmost one and puts the new stack "above" the old one (or the other way around, not that it really matters). For instance, if there are two stacks `["a", "b"] ["c", "d"]`, aftere executing `d` there will be three, looking like this: `["a", "b"] ["c", "d"] ["c", "d"]`.
+
+`e` (Explode) pops `x`, then creates a new stack containing `x` "exploded" to characters. For instance, if the stack is `["ab", "cdefg"]`, after executing `e` there will be two stacks, looking like this: `["ab"] ["c", "d", "e", "f", "g"]`.
+
+`s` (Split) pops `y` and `x`, then creates a new stack containing `x` "split" using `y` as a separator. For instance, if the stack is `["a<>b<><>cd", "<>"]`, after executing `s` there will be two stacks, looking like this `[] ["a", "b", "", "cd"]`.  
+Make sure `y` is not the empty string or the program will crash.
+
+### Get, Put
+Pota programs have the ability to read and modify their own source code. There are two main reasons for doing this.
+
+1. **Storage**: regions of the source code that are never visited by Pointers can be used to store and retrieve data. Negative regions of the code (either `x<0` or `y<0`) are well suited for this purpose, since a Pointer cannot visit them.
+2. **Execution**: regions of the source code that are eventually visited by Pointers can be modified to cleverly alter their behaviour in potentially infinitely many ways.

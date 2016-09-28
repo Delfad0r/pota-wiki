@@ -1,0 +1,21 @@
+# Overview
+
+Pota is a [fungeoidal](https://esolangs.org/wiki/Fungeoid) programming language, largely inspired by [Befunge](https://esolangs.org/wiki/Befunge).
+
+## Features
+- **Two-dimensional**: Pota code is a two-dimensional character grid, where each character represents an instruction; instructions are executed by the Pointer as it moves in the corresponding cells. The code is not executed linearly, as the direction of the Pointer can be changed by Arrows and Mirrors.
+- **Toroidal**: the grid is topologically equivalent to a torus, meaning that the Pointer will wrap around when it reaches the (horizontal or vertical) end of the code.
+- **Stack(s)-based**: each Pointer comes with its own stack to store and retrieve data; new stacks can be created and old stacks merged as needed.
+- **String-based**: instructions are strings, numbers are strings, strings are strings! There is no need to convert between data types when all you can deal with is a string.
+- **Reflective**: strings of arbitrary Pota code can be executed from inside the program itself, thanks to the `` ` `` (Exec) instruction.
+- **Self-modifying**: a Pota program can read and modify its own code thanks to the `g` (Get) and `p` (Put) instructions.
+- **Fake multi-threading**: more Pointers can be spawned with the `&` (Spawn) instruction, but their actions are performed sequentially, so that there is no actual speedup.
+
+## "Hello Pota!"
+Before you start diving into the language, take a look at the classical "Hello Pota!" program:
+```
+"Hello Pota!"o;
+```
+
+## Documentation
+- [The Language](Documentation/language.md): comprehensive Pota documentation.

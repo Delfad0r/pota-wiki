@@ -9,12 +9,13 @@
         
         <link rel="shortcut icon" href="./img/favicon.ico">
 
-	<title>My Docs</title>
+	<title>Pota wiki</title>
 
         <link href="./css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="./css/font-awesome-4.5.0.css" rel="stylesheet">
         <link href="./css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="./css/highlight.css">
+        <link href="./css/extra.css" rel="stylesheet">
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -33,13 +34,47 @@
         <!-- Collapsed navigation -->
         <div class="navbar-header">
             
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
 
             <!-- Main title -->
-            <a class="navbar-brand" href=".">My Docs</a>
+            <a class="navbar-brand" href=".">Pota wiki</a>
         </div>
 
         <!-- Expanded navigation -->
         <div class="navbar-collapse collapse">
+            
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li class="active">
+                        <a href=".">Overview</a>
+                    </li>
+                
+                
+                
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Documentation <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                        
+                            
+<li >
+    <a href="Documentation/language/">The Language</a>
+</li>
+
+                        
+                        </ul>
+                    </li>
+                
+                
+                </ul>
             
 
             <ul class="nav navbar-nav navbar-right">
@@ -48,6 +83,17 @@
                         <i class="fa fa-search"></i> Search
                     </a>
                 </li>
+                
+                    <li class="disabled">
+                        <a rel="next" >
+                            <i class="fa fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="Documentation/language/">
+                            Next <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </li>
                 
                 
             </ul>
@@ -60,32 +106,40 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
     
-        <li class="main active"><a href="#welcome-to-mkdocs">Welcome to MkDocs</a></li>
+        <li class="main active"><a href="#overview">Overview</a></li>
         
-            <li><a href="#commands">Commands</a></li>
+            <li><a href="#features">Features</a></li>
         
-            <li><a href="#project-layout">Project layout</a></li>
+            <li><a href="#hello-pota">"Hello Pota!"</a></li>
+        
+            <li><a href="#documentation">Documentation</a></li>
         
     
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="welcome-to-mkdocs">Welcome to MkDocs</h1>
-<p>For full documentation visit <a href="http://mkdocs.org">mkdocs.org</a>.</p>
-<h2 id="commands">Commands</h2>
+<h1 id="overview">Overview</h1>
+<p>Pota is a <a href="https://esolangs.org/wiki/Fungeoid">fungeoidal</a> programming language, largely inspired by <a href="https://esolangs.org/wiki/Befunge">Befunge</a>.</p>
+<h2 id="features">Features</h2>
 <ul>
-<li><code>mkdocs new [dir-name]</code> - Create a new project.</li>
-<li><code>mkdocs serve</code> - Start the live-reloading docs server.</li>
-<li><code>mkdocs build</code> - Build the documentation site.</li>
-<li><code>mkdocs help</code> - Print this help message.</li>
+<li><strong>Two-dimensional</strong>: Pota code is a two-dimensional character grid, where each character represents an instruction; instructions are executed by the Pointer as it moves in the corresponding cells. The code is not executed linearly, as the direction of the Pointer can be changed by Arrows and Mirrors.</li>
+<li><strong>Toroidal</strong>: the grid is topologically equivalent to a torus, meaning that the Pointer will wrap around when it reaches the (horizontal or vertical) end of the code.</li>
+<li><strong>Stack(s)-based</strong>: each Pointer comes with its own stack to store and retrieve data; new stacks can be created and old stacks merged as needed.</li>
+<li><strong>String-based</strong>: instructions are strings, numbers are strings, strings are strings! There is no need to convert between data types when all you can deal with is a string.</li>
+<li><strong>Reflective</strong>: strings of arbitrary Pota code can be executed from inside the program itself, thanks to the <code>`</code> (Exec) instruction.</li>
+<li><strong>Self-modifying</strong>: a Pota program can read and modify its own code thanks to the <code>g</code> (Get) and <code>p</code> (Put) instructions.</li>
+<li><strong>Fake multi-threading</strong>: more Pointers can be spawned with the <code>&amp;</code> (Spawn) instruction, but their actions are performed sequentially, so that there is no actual speedup.</li>
 </ul>
-<h2 id="project-layout">Project layout</h2>
-<pre><code>mkdocs.yml    # The configuration file.
-docs/
-    index.md  # The documentation homepage.
-    ...       # Other markdown pages, images and other files.
-</code></pre></div>
+<h2 id="hello-pota">"Hello Pota!"</h2>
+<p>Before you start diving into the language, take a look at the classical "Hello Pota!" program:</p>
+<pre><code class="nohighlight">&quot;Hello Pota!&quot;o;
+</code></pre>
+
+<h2 id="documentation">Documentation</h2>
+<ul>
+<li><a href="Documentation/language/">The Language</a>: comprehensive Pota documentation.</li>
+</ul></div>
             
         </div>
 
@@ -132,5 +186,5 @@ docs/
 
 <!--
 MkDocs version : 0.15.3
-Build Date UTC : 2016-09-28 17:07:11.271134
+Build Date UTC : 2016-09-28 21:10:18.019711
 -->
