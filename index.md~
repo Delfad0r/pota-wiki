@@ -13,7 +13,7 @@ Pota is a [fungeoidal](https://esolangs.org/wiki/Fungeoid) programming language,
 
 ## "Hello Pota!"
 Before you start diving into the language, take a look at the classical "Hello Pota!" program:
-```
+```nohighlight
 "Hello Pota!"o;
 ```
 

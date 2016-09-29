@@ -69,15 +69,15 @@ Here is the complete list of Pota instructions; see below for more detailed desc
 |`f`|[Flatten](#flatten-flatten-rotate-reverse)|Pop `x` from the stack, then concatenate all the string in the stack using `x ` as separator.|
 |`{ }`|[Rotate](#flatten-flatten-rotate-reverse)|Rotate the stack respectively to the left and to the right.|
 |`r`|[Reverse](#flatten-flatten-rotate-reverse)|Reverse the stack.|
-|`n`|New|Pop `x` from the stack, then split the stack in two, creating a new one: the last `x` elements of the old stack, preserving their order, become the elements of the new stack.|
-|`m`|Merge|Merge the stack with the stack underlying; if the current stack is the only one, then empty it.|
-|`d`|SDuplicate|Create a new stack identical to the underlying one.|
-|`e`|Explode|Pop `x` from the stack, then add a new stack containing the characters of `x`, in order.|
-|`s`|Split|Pop `y` and `x` from the stack, then add a new stack containing the result of splitting `x` with `y` as separator.|
+|`n`|[New](#new-merge-sduplicate-explode-split)|Pop `x` from the stack, then split the stack in two, creating a new one: the last `x` elements of the old stack, preserving their order, become the elements of the new stack.|
+|`m`|[Merge](#new-merge-sduplicate-explode-split)|Merge the stack with the stack underlying; if the current stack is the only one, then empty it.|
+|`d`|[SDuplicate](#new-merge-sduplicate-explode-split)|Create a new stack identical to the underlying one.|
+|`e`|[Explode](#new-merge-sduplicate-explode-split)|Pop `x` from the stack, then add a new stack containing the characters of `x`, in order.|
+|`s`|[Split](#new-merge-sduplicate-explode-split)|Pop `y` and `x` from the stack, then add a new stack containing the result of splitting `x` with `y` as separator.|
 |`l`|Length|Push the length of the stack to the stack.|
 |`` ` ``|Exec|Pop `x` from the stack, then push all the characters of `x` to the front of the instructions queue, so that the corresponding instructions are executed in order.|
-|`g`|Get|Pop `y` and `x` from the stack, then push the value of cell `(x,y)`.|
-|`p`|Put|Pop `y`, `x` and `v` from the stack and set cell `(x, y)` to `v`.|
+|`g`|[Get](#get-put)|Pop `y` and `x` from the stack, then push the value of cell `(x,y)`.|
+|`p`|[Put](#get-put)|Pop `y`, `x` and `v` from the stack and set cell `(x, y)` to `v`.|
 |`&`|Spawn|Pop `x` from the stack, then create a new Pointer in the cell in front of the current position of the Pointer; the new Pointer will have the same direction as the old one, and `x` elements will be transferred from the stack of the old Pointer to that of the new one.|
 |`#`|Wait|Wait until the messages queue is not empty, then push one message to the stack, removing it from the queue.|
 |`@`|Send|Pop `y` and `x` from the stack, then send the message `x` to Pointer with id `y`.|
